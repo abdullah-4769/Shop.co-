@@ -29,8 +29,8 @@ interface ProductDetailProps {
 
 export function ProductDetail({ product }: ProductDetailProps) {
   const [selectedImage, setSelectedImage] = useState(0)
-  const [selectedColor, setSelectedColor] = useState(product.colors[0])
-  const [selectedSize, setSelectedSize] = useState('Large')
+  const [selectedColor, setSelectedColor] = useState(product.colors[0]) 
+  const [selectedSize, setSelectedSize] = useState(product.sizes[0]) 
   const [quantity, setQuantity] = useState(1)
 
   const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)

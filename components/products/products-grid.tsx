@@ -1,118 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { ChevronLeft, ChevronRight, SlidersHorizontal, ChevronDown } from 'lucide-react'
 import { ProductCard } from './product-card'
 import { Filters } from './filters'
 import { cn } from '@/lib/utils'
 import { satoshi } from '@/app/ui/fonts'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-
-const products = [
-  {
-    id: '1',
-    title: 'Gradient Graphic T-shirt',
-    price: 145,
-    originalPrice: 242,
-    rating: 4.5,
-    reviews: 150,
-    image: '/products/g-graphic-t-shirt.png',
-    discount: 20
-  },
-  {
-    id: '2',
-    title: 'Polo with Tipping Details',
-    price: 180,
-    originalPrice: 242,
-    rating: 4.5,
-    reviews: 150,
-    image: '/products/polo.png',
-    discount: 22
-  },
-  {
-    id: '3',
-    title: 'T-shirt with Tape Details',
-    price: 180,
-    originalPrice: 242,
-    rating: 4.5,
-    reviews: 150,
-    image: '/products/tape-tshirt.png',
-    discount: 22
-  },
-  {
-    id: '4',
-    title: 'Skinny Fit Jeans',
-    price: 180,
-    originalPrice: 242,
-    rating: 4.5,
-    reviews: 150,
-    image: '/products/skinny-jeans.png',
-    discount: 22
-  },
-  {
-    id: '5',
-    title: 'Checkered Shirt',
-    price: 180,
-    originalPrice: 242,
-    rating: 4.5,
-    reviews: 150,
-    image: '/products/checkered-tshirt.png',
-    discount: 22
-  },
-  {
-    id: '6',
-    title: 'Sleeve Striped T-shirt',
-    price: 180,
-    originalPrice: 242,
-    rating: 4.5,
-    reviews: 150,
-    image: '/products/sleave-tshirt.png',
-    discount: 22
-  },
-  {
-    id: '7',
-    title: 'Vertical Striped Shirt',
-    price: 180,
-    originalPrice: 242,
-    rating: 4.5,
-    reviews: 150,
-    image: '/products/vertical-shirt.png',
-    discount: 22
-  },
-  {
-    id: '8',
-    title: 'Courage Graphic T-shirt',
-    price: 180,
-    originalPrice: 242,
-    rating: 4.5,
-    reviews: 150,
-    image: '/products/graphic-tshirt.png',
-    discount: 22
-  },
-  {
-    id: '9',
-    title: 'Loose Fit Bermuda Shorts',
-    price: 180,
-    originalPrice: 242,
-    rating: 4.5,
-    reviews: 150,
-    image: '/products/loose-shorts.png',
-    discount: 22
-  },
-  {
-    id: '10',
-    title: 'Faded Skinny Jeans',
-    price: 180,
-    originalPrice: 242,
-    rating: 4.5,
-    reviews: 150,
-    image: '/products/faded-jeans.png',
-    discount: 22
-  },
-  // Add more products...
-]
 
 const sortOptions = [
   { label: 'Most Popular', value: 'most-popular' },
@@ -121,14 +17,52 @@ const sortOptions = [
   { label: 'Price: High to Low', value: 'price-high-low' },
 ]
 
+// Fetch products from API
+async function fetchProducts() {
+  try {
+    const res = await fetch('/api/product', { cache: 'no-store' }) // Disable caching
+    if (!res.ok) throw new Error('Failed to fetch products')
+
+    const data = await res.json()
+    console.log("Fetched Products:", data) // Debugging
+
+    return data
+  } catch (error) {
+    console.error("Error fetching products:", error)
+    return [] // Return empty array to avoid crashes
+  }
+}
+
+
 export function ProductGrid() {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [selectedSort, setSelectedSort] = useState(sortOptions[0])
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const router = useRouter()
+
+  useEffect(() => {
+    fetchProducts()
+      .then((data) => {
+        setProducts(data)
+        setLoading(false)
+      })
+      .catch((err) => {
+        console.error(err)
+        // setError("Failed to load products. Please try again.")
+        setLoading(false)
+      })
+  }, [])
+  
+
+  if (loading) return <p className="text-center text-gray-500">Loading products...</p>
+  if (error) return <p className="text-center text-red-500">{error}</p>
 
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        
         {/* Breadcrumb */}
         <div className="flex items-center text-sm text-gray-500 mb-4">
           <Link href="/" className="hover:text-gray-900">Home</Link>
@@ -143,7 +77,7 @@ export function ProductGrid() {
           </h1>
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <span className="text-gray-500 text-sm sm:text-base font-normal">
-              Showing 1-12 of 100 Products
+              Showing {products.length} Products
             </span>
             <div className="flex items-center gap-4">
               <button
@@ -166,9 +100,7 @@ export function ProductGrid() {
                         key={option.value}
                         className={cn(
                           "flex items-center px-3 py-2 text-sm rounded-md cursor-pointer outline-none",
-                          option.value === selectedSort.value
-                            ? "bg-gray-100"
-                            : "hover:bg-gray-50"
+                          option.value === selectedSort.value ? "bg-gray-100" : "hover:bg-gray-50"
                         )}
                         onClick={() => setSelectedSort(option)}
                       >
@@ -189,22 +121,26 @@ export function ProductGrid() {
           </div>
 
           {/* Mobile Filters */}
-          <Filters
-            isMobile
-            isOpen={isFilterOpen}
-            onClose={() => setIsFilterOpen(false)}
-          />
+          <Filters isMobile isOpen={isFilterOpen} onClose={() => setIsFilterOpen(false)} />
 
           {/* Product Grid */}
           <div className="flex-1">
             <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 lg:gap-6">
-              {products.map((product) => (
+              {products.map((product: any) => (
                 <div 
-                  key={product.id} 
-                  onClick={() => router.push(`/product/${product.id}`)}
+                  key={product._id} 
+                  onClick={() => router.push(`/product/${product._id}`)}
                   className="cursor-pointer"
                 >
-                  <ProductCard {...product} />
+                  <ProductCard 
+                    title={product.name} 
+                    price={product.price}
+                    originalPrice={product.originalPrice}
+                    rating={product.rating || 0}
+                    reviews={product.reviews || 0}
+                    image={product.imageUrl}
+                    discount={product.discountPercent}
+                  />
                 </div>
               ))}
             </div>
@@ -219,9 +155,7 @@ export function ProductGrid() {
                   key={i}
                   className={cn(
                     "px-3 py-1 sm:px-4 sm:py-2 rounded-lg transition-colors text-sm sm:text-base",
-                    page === 1 
-                      ? "bg-black text-white" 
-                      : "hover:bg-gray-100"
+                    page === 1 ? "bg-black text-white" : "hover:bg-gray-100"
                   )}
                 >
                   {page}

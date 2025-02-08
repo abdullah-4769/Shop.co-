@@ -5,6 +5,11 @@ import Link from 'next/link'
 import { Menu, Search, ShoppingCart, User } from 'lucide-react'
 import { integralCF } from '@/app/ui/fonts'
 import { cn } from '@/lib/utils'
+import {  SignInButton,
+  SignedIn,
+  SignedOut,
+  UserButton
+} from '@clerk/nextjs'
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -78,9 +83,15 @@ export function Navbar() {
               <Link href="/cart">
                 <ShoppingCart className="h-6 w-6" />
               </Link>
-              <Link href="#">
-                <User className="h-6 w-6" />
-              </Link>
+              <div className='auth-buttons'>
+                <SignedOut>
+                            <SignInButton />
+                          </SignedOut>
+                          <SignedIn>
+                            <UserButton />
+                          </SignedIn>
+                   <SignedOut/>
+              </div>
             </div>
           </div>
         </div>
